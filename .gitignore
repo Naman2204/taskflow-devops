@@ -1,3 +1,9 @@
 node_modules
 .env
 .DS_Store
+
+# GitHub self hosted runner
+actions-runner/
+
+# logs
+*.log
