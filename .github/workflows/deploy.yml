@@ -1,88 +1,61 @@
 name: TaskFlow CI/CD
 
-
 on:
-
   push:
-
     branches:
-
       - main
 
-
-
 jobs:
-
-
   deploy:
-
-
     runs-on: self-hosted
 
-
-
     steps:
+      - name: Checkout Code
 
+        uses: actions/checkout@v4
 
-    - name: Checkout Code
+      - name: Setup Node
 
-      uses: actions/checkout@v4
+        uses: actions/setup-node@v4
 
+        with:
+          node-version: 22
 
+      - name: Install Dependencies
 
-    - name: Setup Node
+        working-directory: app
 
-      uses: actions/setup-node@v4
+        run: npm ci
 
-      with:
+      - name: Build Docker Image
 
-        node-version: 22
+        run: |
 
+          docker build \
+          -t taskflow:v1 \
+          ./app
 
+      - name: Load Image Into Kind
 
-    - name: Install Dependencies
+        run: |
 
-      working-directory: app
+          kind load docker-image taskflow:v1 \
+          --name taskflow
 
-      run: npm ci
+      - name: Deploy Kubernetes
 
+        run: |
 
+          kubectl apply -f k8s/namespace.yaml
 
-    - name: Build Docker Image
+          kubectl apply -f k8s/mongo/
 
-      run: |
+          kubectl apply -f k8s/backend/
 
-        docker build \
-        -t taskflow:v1 \
-        ./app
+      - name: Verify Deployment
 
+        run: |
 
-
-    - name: Load Image Into Kind
-
-      run: |
-
-        kind load docker-image taskflow:v1 \
-        --name taskflow
-
-
-
-    - name: Deploy Kubernetes
-
-      run: |
-
-        kubectl apply -f k8s/namespace.yaml
-        
-        kubectl apply -f k8s/mongo/
-
-        kubectl apply -f k8s/backend/
-
-
-
-    - name: Verify Deployment
-
-      run: |
-
-        kubectl rollout status \
-        deployment/taskflow-api \
-        -n taskflow
+          kubectl rollout status \
+          deployment/taskflow-api \
+          -n taskflow

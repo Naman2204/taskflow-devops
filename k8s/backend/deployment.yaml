@@ -1,119 +1,61 @@
 apiVersion: apps/v1
-
 kind: Deployment
 
-
 metadata:
-
   name: taskflow-api
-
   namespace: taskflow
 
-
 spec:
-
   replicas: 2
 
-
   selector:
-
     matchLabels:
-
       app: taskflow-api
 
-
   template:
-
-
     metadata:
-
-
       labels:
-
         app: taskflow-api
 
-
     spec:
-
-
       containers:
-
-
       - name: taskflow-api
-
 
         image: taskflow:v1
 
-
         imagePullPolicy: Never
 
-
         ports:
-
         - containerPort: 8000
 
+        envFrom:
+        - configMapRef:
+            name: taskflow-config
 
-
-        env:
-
-
-        - name: PORT
-
-          value: "8000"
-
-
-
-        - name: MONGO_URL
-
-          value: "mongodb://admin:password123@mongo-service:27017/taskflow?authSource=admin"
-
-
+        - secretRef:
+            name: taskflow-secret
 
         readinessProbe:
-
           httpGet:
-
             path: /health
-
             port: 8000
-
 
           initialDelaySeconds: 10
-
           periodSeconds: 5
 
-
-
         livenessProbe:
-
-
           httpGet:
-
             path: /health
-
             port: 8000
 
-
           initialDelaySeconds: 20
-
           periodSeconds: 10
 
-
-
         resources:
-
-
           requests:
-
-
             memory: "128Mi"
-
             cpu: "100m"
 
-
           limits:
-
-
             memory: "256Mi"
-
             cpu: "500m"

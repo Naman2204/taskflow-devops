@@ -1,94 +1,71 @@
+async function loadTasks() {
+  const response = await fetch("/tasks");
 
-async function loadTasks(){
+  const tasks = await response.json();
 
-let res =
-await fetch("/tasks");
+  document.getElementById("tasks").innerHTML = tasks
+    .map(
+      (task) => `
 
-let tasks =
-await res.json();
-
-
-document.getElementById("tasks")
-.innerHTML =
-tasks.map(t=>`
-
-<li class="${t.completed?'done':''}">
-
-<span onclick="toggleTask('${t._id}')">
-
-${t.title}
-
-</span>
+        <li class="${task.completed ? "done" : ""}">
 
 
-<button onclick="deleteTask('${t._id}')">
-X
-</button>
+            <span onclick="toggleTask('${task._id}')">
 
-</li>
+                ${task.title}
 
-`).join("");
+            </span>
 
+
+            <button onclick="deleteTask('${task._id}')">
+
+                X
+
+            </button>
+
+
+        </li>
+
+
+        `,
+    )
+    .join("");
 }
 
+async function addTask() {
+  const title = document.getElementById("taskInput").value;
 
+  await fetch("/tasks", {
+    method: "POST",
 
+    headers: {
+      "Content-Type": "application/json",
+    },
 
-async function addTask(){
+    body: JSON.stringify({
+      title,
+    }),
+  });
 
-let title =
-document.getElementById("taskInput").value;
+  document.getElementById("taskInput").value = "";
 
-
-await fetch("/tasks",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-title
-})
-
-});
-
-
-document.getElementById("taskInput").value="";
-
-loadTasks();
-
+  loadTasks();
 }
 
+async function toggleTask(id) {
+  await fetch(`/tasks/${id}`, {
+    method: "PATCH",
+  });
 
-
-async function toggleTask(id){
-
-await fetch(`/tasks/${id}`,{
-method:"PATCH"
-});
-
-
-loadTasks();
-
+  loadTasks();
 }
 
+async function deleteTask(id) {
+  await fetch(`/tasks/${id}`, {
+    method: "DELETE",
+  });
 
-
-
-async function deleteTask(id){
-
-await fetch(`/tasks/${id}`,{
-method:"DELETE"
-});
-
-
-loadTasks();
-
+  loadTasks();
 }
 
-
-
 loadTasks();
-
